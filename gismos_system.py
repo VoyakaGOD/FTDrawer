@@ -8,10 +8,17 @@ from cmath import phase
 class GismosSystem:
     def __init__(self, origin : pg.Vector2, carrier_frequency : float, coefficients : list[complex]):
         self.origin = origin
-        self.gismos = []
-        for n, c in enumerate(coefficients):
-            if c == 0: continue
-            self.gismos += [[abs(c), 2 * pi * carrier_frequency * n, phase(c)]] # coefficient, frequency, angle
+        if len(coefficients) % 2 == 0:
+            raise Exception("Coefficients array should be [c_{-n}, ..., c_{0}, ..., c_{n}]")
+        n = len(coefficients) // 2
+        self.gismos = [[abs(coefficients[n]), 0, phase(coefficients[n])]]
+        for i in range(1, n + 1):
+            c = coefficients[n - i]
+            if c != 0:
+                self.gismos += [[abs(c), 2 * pi * carrier_frequency * i, phase(c)]] # coefficient, frequency, angle
+            c = coefficients[n + i]
+            if c != 0:
+                self.gismos += [[abs(c), -2 * pi * carrier_frequency * i, phase(c)]] # coefficient, frequency, angle
 
     def update(self, dt : float):
         for gismo in self.gismos:

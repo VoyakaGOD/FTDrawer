@@ -1,3 +1,4 @@
+from svg import get_coefficients
 from gismos_system import GismosSystem
 from path_drawer import PathDrawer
 from config import WIDTH, HEIGHT
@@ -9,7 +10,7 @@ pg.display.set_caption("FTDrawer")
 clock = pg.time.Clock()
 running = True
 
-gismos_drawer = GismosSystem(pg.Vector2(WIDTH / 2, HEIGHT / 2), 100, [0, 100, 75, 0, 20, 10, 50j])
+gismos_drawer = GismosSystem(pg.Vector2(200 + 0*WIDTH / 2, 200 + 0*HEIGHT / 2), 100, get_coefficients("M 100 100 L 300 200", 10))
 path_drawer = PathDrawer(gismos_drawer.get_point())
 
 while running:
