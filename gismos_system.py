@@ -3,14 +3,15 @@ from gismo import draw_gismo
 from arrow import get_vector
 import pygame as pg
 from math import pi
+from cmath import phase
 
 class GismosSystem:
-    def __init__(self, origin : pg.Vector2, carrier_frequency : float, coefficients : list[float]):
+    def __init__(self, origin : pg.Vector2, carrier_frequency : float, coefficients : list[complex]):
         self.origin = origin
         self.gismos = []
         for n, c in enumerate(coefficients):
             if c == 0: continue
-            self.gismos += [[c, 2 * pi * carrier_frequency * n, 0]] # coefficient, frequency, angle
+            self.gismos += [[abs(c), 2 * pi * carrier_frequency * n, phase(c)]] # coefficient, frequency, angle
 
     def update(self, dt : float):
         for gismo in self.gismos:

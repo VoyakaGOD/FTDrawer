@@ -9,7 +9,7 @@ pg.display.set_caption("FTDrawer")
 clock = pg.time.Clock()
 running = True
 
-gismos_drawer = GismosSystem(pg.Vector2(WIDTH / 2, HEIGHT / 2), 100, [0, 100, 75, 0, 20, 10, 50])
+gismos_drawer = GismosSystem(pg.Vector2(WIDTH / 2, HEIGHT / 2), 100, [0, 100, 75, 0, 20, 10, 50j])
 path_drawer = PathDrawer(gismos_drawer.get_point())
 
 while running:
