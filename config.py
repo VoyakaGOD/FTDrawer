@@ -1,3 +1,10 @@
+from math import pi
 
+#SCREEN:
 WIDTH = 1000
 HEIGHT = 500
+
+#ARROWS:
+ARROW_ANGLE = pi / 6
+ARROW_SUB_ANGLE = pi / 12
+ARROW_RECESS = 0.2
