@@ -2,14 +2,13 @@ from math import pi
 from cmath import exp
 import re
 
-path_regex = re.compile(r's<path[^>]*d=\"((?P<d>[^"]*))"', re.MULTILINE)
+path_regex = re.compile(r'<path[^>]*d=\"((?P<d>[^"]*))"', re.MULTILINE)
 pi2 = pi * pi
 pi3 = pi2 * pi
 
 def get_first_path(svg : str) -> str:
     with open(svg) as file:
-        content = path_regex.search(file.read()).group("d")
-        return content
+        return path_regex.search(file.read()).group("d")
 
 def get_line_coefficients(start : complex, end : complex, N : int, n : int):
     coefficients = []
@@ -41,7 +40,7 @@ def get_quadratic_coefficients(start : complex, control : complex, end : complex
             coefficients += [a * alpha + b * beta + c * gamma]
     return coefficients
 
-def get_qubic_coefficients(start : complex, first_control : complex, second_control : complex, end : complex, N : int, n : int):
+def get_cubic_coefficients(start : complex, first_control : complex, second_control : complex, end : complex, N : int, n : int):
     coefficients = []
     a = start
     b = 3 * (first_control - start)
@@ -60,15 +59,36 @@ def get_qubic_coefficients(start : complex, first_control : complex, second_cont
     return coefficients
 
 def get_coefficients(path : str, n : int):
-    N = 2
-    l1 = get_line_coefficients(300 + 300j, 0 + 0j, N, n)
-    l2 = get_qubic_coefficients(0 + 0j, 0 + 300j, 300 + 0j, 300 + 300j, N, n)
-    l3 = get_line_coefficients(100 + 100j, 200 + 100j, N, n)
-
-    lx = get_line_coefficients(15 + 0j, 0 + 0j, N, n)
-    lx = get_line_coefficients(15 + 0j, 0 + 0j, N, n)
-    coefficients = l1.copy()
-    for T, l in enumerate([l2], start=1):
+    content = [_ for _ in path.replace(",", " ").split() if _]
+    N = content.count("L") + content.count("C") + content.count("z")
+    ptr = 0
+    lines = []
+    point = None
+    initial_point = None
+    while ptr < len(content):
+        if content[ptr] == "M":
+            point = float(content[ptr + 1]) + 1j * float(content[ptr + 2])
+            initial_point = point
+            ptr += 3
+        elif content[ptr] == "L":
+            next_point = float(content[ptr + 1]) + 1j * float(content[ptr + 2])
+            lines += [get_line_coefficients(point, next_point, N, n)]
+            point = next_point
+            ptr += 3
+        elif content[ptr] == "C":
+            first_control = float(content[ptr + 1]) + 1j * float(content[ptr + 2])
+            second_control = float(content[ptr + 3]) + 1j * float(content[ptr + 4])
+            next_point = float(content[ptr + 5]) + 1j * float(content[ptr + 6])
+            lines += [get_cubic_coefficients(point, first_control, second_control, next_point, N, n)]
+            point = next_point
+            ptr += 7
+        elif content[ptr] == "z":
+            lines += [get_line_coefficients(point, initial_point, N, n)]
+            ptr += 1
+        else:
+            raise Exception(f"[{content[ptr]}]Not supported yet!!!")
+    coefficients = lines[0]
+    for T, l in enumerate(lines[1:], start=1):
         for k, c in enumerate(l, start=-n):
             coefficients[k + n] += c * exp(-2j * pi * k / N * T)
     return coefficients
