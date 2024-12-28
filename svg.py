@@ -42,19 +42,33 @@ def get_quadratic_coefficients(start : complex, control : complex, end : complex
     return coefficients
 
 def get_qubic_coefficients(start : complex, first_control : complex, second_control : complex, end : complex, N : int, n : int):
-    pass
+    coefficients = []
+    a = start
+    b = 3 * (first_control - start)
+    c = 3 * second_control + 3 * start - 6 * first_control
+    d = (end - start + 3 * first_control - 3 * second_control)
+    for k in range(-n, n + 1):
+        if k == 0:
+            coefficients += [(a + b/2 + c/3) / N]
+        else:
+            I = exp(-2j * pi * k / N)
+            alpha = (I - 1) / pi / k * 0.5j
+            beta = I / pi / k * 0.5j - 0.5j * N * alpha / pi / k
+            gamma = I / pi / k * 0.5j - 1j * N * beta / pi / k
+            delta = I / pi / k * 0.5j - 1.5j * N * gamma / pi / k
+            coefficients += [a * alpha + b * beta + c * gamma + d * delta]
+    return coefficients
 
 def get_coefficients(path : str, n : int):
-    N = 3
-    l1 = get_line_coefficients(200 + 100j, 200 + 300j, N, n)
-    l2 = get_quadratic_coefficients(200 + 300j, 200 + 100j, 100 + 100j, N, n)
-    #l2 = get_line_coefficients(200 + 300j, 100 + 100j, N, n)
+    N = 2
+    l1 = get_line_coefficients(300 + 300j, 0 + 0j, N, n)
+    l2 = get_qubic_coefficients(0 + 0j, 0 + 300j, 300 + 0j, 300 + 300j, N, n)
     l3 = get_line_coefficients(100 + 100j, 200 + 100j, N, n)
 
     lx = get_line_coefficients(15 + 0j, 0 + 0j, N, n)
     lx = get_line_coefficients(15 + 0j, 0 + 0j, N, n)
     coefficients = l1.copy()
-    for T, l in enumerate([l2, l3], start=1):
+    for T, l in enumerate([l2], start=1):
         for k, c in enumerate(l, start=-n):
             coefficients[k + n] += c * exp(-2j * pi * k / N * T)
     return coefficients
