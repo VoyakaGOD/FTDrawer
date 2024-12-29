@@ -10,6 +10,10 @@ def lerp(start, end, t):
 WIDTH = 1000
 HEIGHT = 500
 
+#CANVAS:
+CANVAS_WIDTH = 3 * WIDTH
+CANVAS_HEIGHT = 3 * HEIGHT
+
 #ARROWS:
 ARROW_ANGLE = pi / 6
 ARROW_SUB_ANGLE = pi / 12

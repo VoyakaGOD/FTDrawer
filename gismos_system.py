@@ -11,14 +11,16 @@ class GismosSystem:
         if len(coefficients) % 2 == 0:
             raise Exception("Coefficients array should be [c_{-n}, ..., c_{0}, ..., c_{n}]")
         n = len(coefficients) // 2
-        self.gismos = [[abs(coefficients[n]), 0, phase(coefficients[n])]]
+        self.gismos = []
+        self.add_gismo(abs(coefficients[n]), 0, phase(coefficients[n]))
         for i in range(1, n + 1):
             c = coefficients[n - i]
-            if c != 0:
-                self.gismos += [[abs(c), 2 * pi * carrier_frequency * i, phase(c)]] # coefficient, frequency, angle
+            if c != 0: self.add_gismo(abs(c), 2 * pi * carrier_frequency * i, phase(c))
             c = coefficients[n + i]
-            if c != 0:
-                self.gismos += [[abs(c), -2 * pi * carrier_frequency * i, phase(c)]] # coefficient, frequency, angle
+            if c != 0: self.add_gismo(abs(c), -2 * pi * carrier_frequency * i, phase(c))
+
+    def add_gismo(self, radius : float, omega : float, angle : float):
+        self.gismos += [[radius, omega, angle]]
 
     def update(self, dt : float):
         for gismo in self.gismos:
