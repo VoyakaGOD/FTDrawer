@@ -1,5 +1,6 @@
 from config import WIDTH, HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT
 from config import CAMERA_MOVEMENT_SPEED
+from config import ZOOM_IN_LIMIT, ZOOM_OUT_LIMIT, ZOOM_FACTOR
 from config import KeyBindings
 import pygame as pg
 
@@ -28,13 +29,15 @@ class Camera:
         self.scale = 1
 
     def draw(self, surface : pg.Surface):
-        scaled = pg.transform.scale(self.canvas, Camera.get_canvas_size() * self.scale)
+        scaled = pg.transform.scale_by(self.canvas, self.scale)
         surface.blit(scaled, self.position)
 
     def move(self, delta : pg.Vector2):
         self.position -= delta
 
     def change_scale(self, factor : float):
+        if self.scale * factor > ZOOM_IN_LIMIT: return
+        if self.scale * factor < (1 / ZOOM_OUT_LIMIT): return
         self.position -= (Camera.get_screen_center() - self.position) * (factor - 1)
         self.scale *= factor
 

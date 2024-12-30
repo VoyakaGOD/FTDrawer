@@ -33,6 +33,9 @@ def get_path_color(x : int, y : int) -> Color:
 
 # INTERACTION:
 CAMERA_MOVEMENT_SPEED = 150 # pixels per second
+ZOOM_FACTOR = 1.5
+ZOOM_IN_LIMIT = 2.5
+ZOOM_OUT_LIMIT = 4
 class KeyBindings:
     UP = K_w
     LEFT = K_a
