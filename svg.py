@@ -89,10 +89,15 @@ def get_coefficients(path : PathDescription, n : int):
     for cmd in path.commands[1:]:
         shift = point if cmd[0].islower() else 0
         cmd[0] = cmd[0].upper()
-        if cmd[0] in "ML":
+        if cmd[0] in "MLHV":
             if cmd[0] == "M":
                 print("WARNING: Path description contains extra M/m[move]!")
-            next_point = PathDescription.get_point(cmd, 0) + shift
+            if cmd[0] == "H":
+                next_point = (cmd[1] + shift.real) + 1j * point.imag
+            elif cmd[0] == "V":
+                next_point = point.real + 1j * (cmd[1] + shift.imag)
+            else:
+                next_point = PathDescription.get_point(cmd, 0) + shift
             lines += [get_line_coefficients(point, next_point, N, n)]
             point = next_point
         elif cmd[0] in "CS":
@@ -115,4 +120,5 @@ def get_coefficients(path : PathDescription, n : int):
     for T, l in enumerate(lines[1:], start=1):
         for k, c in enumerate(l, start=-n):
             coefficients[k + n] += c * exp(-2j * pi * k / N * T)
+    coefficients[n] = 0 # temporary solution
     return coefficients
