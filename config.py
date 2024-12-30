@@ -1,6 +1,5 @@
 from math import pi
-from pygame import Color
-from pygame.locals import *
+import pygame as pg
 
 def lerp(start, end, t):
     if t < 0: return start
@@ -22,25 +21,27 @@ ARROW_RECESS = 0.2
 
 # GISMOS:
 GISMO_ARROW_HEAD_SIZE = 0.15
-GISMO_COLOR = Color(255, 255, 255)
+GISMO_COLOR = pg.Color(255, 255, 255)
 GISMO_CIRCLE_WIDTH = 1
 
 # PATH:
 PATH_LINE_WIDTH = 3
-def get_path_color(x : int, y : int) -> Color:
+def get_path_color(x : int, y : int) -> pg.Color:
     t = (x / WIDTH + y / HEIGHT) / 2
-    return Color(lerp(255, 128, t), lerp(238, 0, t), lerp(118, 128, t))
+    return pg.Color(lerp(255, 128, t), lerp(238, 0, t), lerp(118, 128, t))
 
 # INTERACTION:
-CAMERA_MOVEMENT_SPEED = 150 # pixels per second
+CAMERA_MOVEMENT_SPEED = 350 # pixels per second
+CAMERA_SHIFTED_MOVEMENT_SPEED = 750 # pixels per second
 ZOOM_FACTOR = 1.5
 ZOOM_IN_LIMIT = 2.5
-ZOOM_OUT_LIMIT = 4
+ZOOM_OUT_LIMIT = 2
 class KeyBindings:
-    UP = K_w
-    LEFT = K_a
-    DOWN = K_s
-    RIGHT = K_d
-    RESTORE = K_f
-    ZOOM_IN = K_q
-    ZOOM_OUT = K_e
+    UP = pg.K_w
+    LEFT = pg.K_a
+    DOWN = pg.K_s
+    RIGHT = pg.K_d
+    RESTORE = pg.K_f
+    ZOOM_IN = pg.K_q
+    ZOOM_OUT = pg.K_e
+    SHIFT = pg.K_LSHIFT
