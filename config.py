@@ -27,7 +27,9 @@ GISMO_CIRCLE_WIDTH = 1
 # PATH:
 PATH_LINE_WIDTH = 3
 def get_path_color(x : int, y : int) -> pg.Color:
-    t = (x / WIDTH + y / HEIGHT) / 2
+    x = abs(x % 512 - 256)
+    y = abs(y % 512 - 256)
+    t = abs((x + y) / 256 - 1)
     return pg.Color(lerp(255, 128, t), lerp(238, 0, t), lerp(118, 128, t))
 
 # INTERACTION:
