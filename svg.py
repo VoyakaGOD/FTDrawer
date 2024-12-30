@@ -3,16 +3,16 @@ from cmath import exp
 import re
 
 path_regex = re.compile(r'<path[^>]*d=\"((?P<d>[^"]*))"', re.MULTILINE)
+command_regex = re.compile(r'([a-zA-Z])([^a-zA-Z]*)', re.MULTILINE)
+separators_regex = re.compile(r'[,\n\t\r]')
 
 class PathDescription:
     def __init__(self, text : str):
         self.commands = []
-        content = [_ for _ in text.replace(",", " ").split() if _]
-        for item in content:
-            if item.isalpha():
-                self.commands += [[item]]
-            else:
-                self.commands[-1] += [float(item)]
+        text = separators_regex.sub(" ", text).replace("-", " -")
+        for cmd in command_regex.findall(text):
+            content = [_ for _ in cmd[1].split() if _]
+            self.commands += [[cmd[0]] + [float(x) for x in content]]
 
     def get_point(command : list[float], index : int):
         return command[index + 1] + 1j * command[index + 2]
@@ -84,21 +84,30 @@ def get_coefficients(path : PathDescription, n : int):
         raise Exception("First command should be M[move]!")
     initial_point = PathDescription.get_point(path.commands[0], 0)
     point = initial_point
+    last_control_point = None # for S/s T/t
     lines = []
     for cmd in path.commands[1:]:
-        if cmd[0] == "M":
-            raise Exception("Path description should contain only one M[move]!")
-        elif cmd[0] == "L":
-            next_point = PathDescription.get_point(cmd, 0)
+        shift = point if cmd[0].islower() else 0
+        cmd[0] = cmd[0].upper()
+        if cmd[0] in "ML":
+            if cmd[0] == "M":
+                print("WARNING: Path description contains extra M/m[move]!")
+            next_point = PathDescription.get_point(cmd, 0) + shift
             lines += [get_line_coefficients(point, next_point, N, n)]
             point = next_point
-        elif cmd[0] == "C":
-            first_control = PathDescription.get_point(cmd, 0)
-            second_control = PathDescription.get_point(cmd, 2)
-            next_point = PathDescription.get_point(cmd, 4)
+        elif cmd[0] in "CS":
+            if cmd[0] == "C":
+                first_control = PathDescription.get_point(cmd, 0) + shift
+                next_index = 2
+            else:
+                first_control = 2 * point - last_control_point
+                next_index = 0
+            second_control = PathDescription.get_point(cmd, next_index) + shift
+            next_point = PathDescription.get_point(cmd, next_index + 2) + shift
             lines += [get_cubic_coefficients(point, first_control, second_control, next_point, N, n)]
             point = next_point
-        elif cmd[0] == "z":
+            last_control_point = second_control
+        elif cmd[0] == "Z":
             lines += [get_line_coefficients(point, initial_point, N, n)]
         else:
             raise Exception(f"Command {{{cmd[0]}}} not supported!")
