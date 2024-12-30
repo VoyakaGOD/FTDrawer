@@ -3,12 +3,30 @@ from cmath import exp
 import re
 
 path_regex = re.compile(r'<path[^>]*d=\"((?P<d>[^"]*))"', re.MULTILINE)
-pi2 = pi * pi
-pi3 = pi2 * pi
 
-def get_first_path(svg : str) -> str:
+class PathDescription:
+    def __init__(self, text : str):
+        self.commands = []
+        content = [_ for _ in text.replace(",", " ").split() if _]
+        for item in content:
+            if item.isalpha():
+                self.commands += [[item]]
+            else:
+                self.commands[-1] += [float(item)]
+
+    def get_point(command : list[float], index : int):
+        return command[index + 1] + 1j * command[index + 2]
+
+    def scale(self, factor : float):
+        pass
+
+    def move(self, dx : float, dy : float):
+        pass
+
+
+def get_first_path_description(svg : str):
     with open(svg) as file:
-        return path_regex.search(file.read()).group("d")
+        return PathDescription(path_regex.search(file.read()).group("d"))
 
 def get_line_coefficients(start : complex, end : complex, N : int, n : int):
     coefficients = []
@@ -58,35 +76,32 @@ def get_cubic_coefficients(start : complex, first_control : complex, second_cont
             coefficients += [a * alpha + b * beta + c * gamma + d * delta]
     return coefficients
 
-def get_coefficients(path : str, n : int):
-    content = [_ for _ in path.replace(",", " ").split() if _]
-    N = content.count("L") + content.count("C") + content.count("z")
-    ptr = 0
+def get_coefficients(path : PathDescription, n : int):
+    N = len(path.commands) - 1 # don't take M into account
+    if N < 1:
+        raise Exception("There is no path!")
+    if path.commands[0][0] != "M":
+        raise Exception("First command should be M[move]!")
+    initial_point = PathDescription.get_point(path.commands[0], 0)
+    point = initial_point
     lines = []
-    point = None
-    initial_point = None
-    while ptr < len(content):
-        if content[ptr] == "M":
-            point = float(content[ptr + 1]) + 1j * float(content[ptr + 2])
-            initial_point = point
-            ptr += 3
-        elif content[ptr] == "L":
-            next_point = float(content[ptr + 1]) + 1j * float(content[ptr + 2])
+    for cmd in path.commands[1:]:
+        if cmd[0] == "M":
+            raise Exception("Path description should contain only one M[move]!")
+        elif cmd[0] == "L":
+            next_point = PathDescription.get_point(cmd, 0)
             lines += [get_line_coefficients(point, next_point, N, n)]
             point = next_point
-            ptr += 3
-        elif content[ptr] == "C":
-            first_control = float(content[ptr + 1]) + 1j * float(content[ptr + 2])
-            second_control = float(content[ptr + 3]) + 1j * float(content[ptr + 4])
-            next_point = float(content[ptr + 5]) + 1j * float(content[ptr + 6])
+        elif cmd[0] == "C":
+            first_control = PathDescription.get_point(cmd, 0)
+            second_control = PathDescription.get_point(cmd, 2)
+            next_point = PathDescription.get_point(cmd, 4)
             lines += [get_cubic_coefficients(point, first_control, second_control, next_point, N, n)]
             point = next_point
-            ptr += 7
-        elif content[ptr] == "z":
+        elif cmd[0] == "z":
             lines += [get_line_coefficients(point, initial_point, N, n)]
-            ptr += 1
         else:
-            raise Exception(f"[{content[ptr]}]Not supported yet!!!")
+            raise Exception(f"Command {{{cmd[0]}}} not supported!")
     coefficients = lines[0]
     for T, l in enumerate(lines[1:], start=1):
         for k, c in enumerate(l, start=-n):
