@@ -4,6 +4,7 @@ from path_drawer import PathDrawer
 from config import WIDTH, HEIGHT
 from camera import Camera
 import pygame as pg
+from sys import argv
 
 pg.init()
 screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -11,10 +12,14 @@ pg.display.set_caption("FTDrawer")
 clock = pg.time.Clock()
 running = True
 
-description = get_first_path_description("example.svg")
+if len(argv) < 4:
+    print("Usage `python main.py [filename] [n] [f1]`")
+    exit(-1)
+
+description = get_first_path_description(argv[1])
 description.fit_in(Camera.get_screen_size())
 bounding_rect = description.get_bounding_rect().move(Camera.get_canvas_center())
-gismos_drawer = GismosSystem(Camera.get_canvas_center(), 1/10, get_coefficients(description, 7))
+gismos_drawer = GismosSystem(Camera.get_canvas_center(), float(argv[3]), get_coefficients(description, int(argv[2])))
 path_drawer = PathDrawer(gismos_drawer.get_point())
 camera = Camera()
 
