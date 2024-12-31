@@ -1,5 +1,6 @@
 from math import pi
 from cmath import exp
+from pygame import Rect, Vector2
 import re
 
 path_regex = re.compile(r'<path[^>]*d=\"((?P<d>[^"]*))"', re.MULTILINE)
@@ -18,11 +19,58 @@ class PathDescription:
         return command[index + 1] + 1j * command[index + 2]
 
     def scale(self, factor : float):
-        pass
+        for cmd in self.commands:
+            for i in range(1, len(cmd)):
+                cmd[i] *= factor
 
     def move(self, dx : float, dy : float):
-        pass
+        for cmd in self.commands:
+            if cmd[0].islower():
+                continue
+            if cmd[0] == "H":
+                cmd[1] += dx
+            elif cmd[0] == "V":
+                cmd[1] += dy
+            else:
+                for i in range(1, len(cmd), 2):
+                    cmd[i] += dx
+                    cmd[i + 1] += dy
 
+    # returns not the exact bounding rect
+    def get_bounding_rect(self):
+        if (len(self.commands) == 0) or (self.commands[0][0] != "M"):
+            raise Exception("Invalid PathDescription!")
+        min_x = max_x = self.commands[0][1]
+        min_y = max_y = self.commands[0][2]
+        point = (0, 0)
+        for cmd in self.commands:
+            shift = point if cmd[0].islower() else (0, 0) 
+            if cmd[0].upper() == "H":
+                new_x = cmd[1] + shift[0]
+                min_x = min(min_x, new_x)
+                max_x = max(max_x, new_x)
+                point = new_x, point[1]
+                continue
+            if cmd[0].upper() == "V":
+                new_y = cmd[1] + shift[1]
+                min_y = min(min_y, new_y)
+                max_y = max(max_y, new_y)
+                point = point[0], new_y
+                continue
+            for i in range(1, len(cmd) - 1, 2):
+                min_x = min(min_x, cmd[i] + shift[0])
+                max_x = max(max_x, cmd[i] + shift[0])
+                min_y = min(min_y, cmd[i + 1] + shift[1])
+                max_y = max(max_y, cmd[i + 1] + shift[1])
+            if len(cmd) != 1: # not Z/z
+                point = cmd[1] + shift[0], cmd[2] + shift[1]
+        return Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+
+    def fit_in(self, size : Vector2):
+        self_rect = self.get_bounding_rect()
+        ratio = min(size.x / self_rect.width, size.y / self_rect.height)
+        self.scale(ratio)
+        self.move(-self_rect.center[0] * ratio, -self_rect.center[1] * ratio)
 
 def get_first_path_description(svg : str):
     with open(svg) as file:
@@ -120,5 +168,4 @@ def get_coefficients(path : PathDescription, n : int):
     for T, l in enumerate(lines[1:], start=1):
         for k, c in enumerate(l, start=-n):
             coefficients[k + n] += c * exp(-2j * pi * k / N * T)
-    coefficients[n] = 0 # temporary solution
     return coefficients

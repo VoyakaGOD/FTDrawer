@@ -11,7 +11,10 @@ pg.display.set_caption("FTDrawer")
 clock = pg.time.Clock()
 running = True
 
-gismos_drawer = GismosSystem(Camera.get_canvas_center(), 1/10, get_coefficients(get_first_path_description("2.train.svg"), 150))
+description = get_first_path_description("example.svg")
+description.fit_in(Camera.get_screen_size())
+bounding_rect = description.get_bounding_rect().move(Camera.get_canvas_center())
+gismos_drawer = GismosSystem(Camera.get_canvas_center(), 1/10, get_coefficients(description, 7))
 path_drawer = PathDrawer(gismos_drawer.get_point())
 camera = Camera()
 
@@ -32,6 +35,7 @@ while running:
     # Draw:
     path_drawer.draw(camera.get_canvas())
     gismos_drawer.draw(camera.get_canvas())
+    # todo: fix, pg.draw.rect(camera.get_canvas(), (255, 0, 0), bounding_rect, 3)
     camera.draw(screen)
     pg.display.flip()
     clock.tick(60)
