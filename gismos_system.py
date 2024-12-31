@@ -1,4 +1,4 @@
-from config import GISMO_COLOR
+from config import GISMO_COLOR, SHOW_CONSTANT_TERM
 from gismo import draw_gismo
 from arrow import get_vector
 import pygame as pg
@@ -12,7 +12,10 @@ class GismosSystem:
             raise Exception("Coefficients array should be [c_{-n}, ..., c_{0}, ..., c_{n}]")
         n = len(coefficients) // 2
         self.gismos = []
-        self.add_gismo(abs(coefficients[n]), 0, phase(coefficients[n]))
+        if SHOW_CONSTANT_TERM:
+            self.add_gismo(abs(coefficients[n]), 0, phase(coefficients[n]))
+        else:
+            self.origin += pg.Vector2(coefficients[n].real, coefficients[n].imag)
         for i in range(1, n + 1):
             c = coefficients[n - i]
             if c != 0: self.add_gismo(abs(c), 2 * pi * carrier_frequency * i, phase(c))
