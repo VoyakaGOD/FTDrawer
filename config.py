@@ -1,10 +1,6 @@
 from math import pi
 import pygame as pg
-
-def lerp(start, end, t):
-    if t < 0: return start
-    if t > 1: return end
-    return int(start + (end - start) * t)
+from lerp import lerp
 
 # SCREEN:
 WIDTH = 1000
@@ -26,6 +22,9 @@ GISMO_CIRCLE_WIDTH = 1
 SHOW_CONSTANT_TERM = False
 
 # PATH:
+PATH_BRIGHT_PART = 0.7
+PATH_QUEUE_LIMIT = 5050 # in lines/pixels, 0 means no queue
+PATH_DARKENING_FACTOR = 0.35
 PATH_LINE_WIDTH = 3
 def get_path_color(x : int, y : int) -> pg.Color:
     x = abs(x % 512 - 256)
