@@ -160,10 +160,21 @@ def get_coefficients(path : PathDescription, n : int):
             lines += [get_cubic_coefficients(point, first_control, second_control, next_point, N, n)]
             point = next_point
             last_control_point = second_control
+        elif cmd[0] in "TQ":
+            if cmd[0] == "Q":
+                control = PathDescription.get_point(cmd, 0) + shift
+                next_index = 2
+            else:
+                control = 2 * point - last_control_point
+                next_index = 0
+            next_point = PathDescription.get_point(cmd, next_index) + shift
+            lines += [get_quadratic_coefficients(point, control, next_point, N, n)]
+            point = next_point
+            last_control_point = control
         elif cmd[0] == "Z":
             lines += [get_line_coefficients(point, initial_point, N, n)]
         else:
-            raise Exception(f"Command {{{cmd[0]}}} not supported!")
+            raise Exception(f"Command {{{cmd[0]}}} not supported!") # no support planned for A/a
     coefficients = lines[0]
     for T, l in enumerate(lines[1:], start=1):
         for k, c in enumerate(l, start=-n):
